@@ -6,20 +6,18 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
-// Test route
+// TEST ROUTE
 app.get("/", (req, res) => {
   res.send("Server running");
 });
 
-// 🔥 CREATE PAYMENT INTENT
+// 🔥 CREATE PAYMENT INTENT ROUTE
 app.post("/create-payment-intent", async (req, res) => {
   try {
-    const { amount } = req.body;
-
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: amount,
+      amount: 1000, // $10.00
       currency: "usd",
     });
 
@@ -27,8 +25,7 @@ app.post("/create-payment-intent", async (req, res) => {
       clientSecret: paymentIntent.client_secret,
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).send("Error creating payment intent");
+    res.status(500).send(error.message);
   }
 });
 
