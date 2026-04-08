@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+require('dotenv').config();
 
 const app = express();
 app.use(cors());
@@ -7,13 +8,16 @@ app.use(express.json());
 
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
-// TEST ROUTE (so you know server works)
+// TEST ROUTE
 app.get('/', (req, res) => {
   res.send('Server is running');
 });
 
+// CREATE CHECKOUT SESSION
 app.post('/create-checkout-session', async (req, res) => {
   try {
+    console.log("KEY BEING USED:", process.env.STRIPE_SECRET_KEY);
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       mode: 'payment',
@@ -22,33 +26,22 @@ app.post('/create-checkout-session', async (req, res) => {
           price_data: {
             currency: 'usd',
             product_data: {
-              name: 'TabFlow Payment',
+              name: 'Test Payment',
             },
-            unit_amount: 100,
+            unit_amount: 5000,
           },
           quantity: 1,
         },
       ],
-      success_url: 'https://google.com',
-      cancel_url: 'https://google.com',
+      success_url: 'https://example.com/success',
+      cancel_url: 'https://example.com/cancel',
     });
 
-    console.log("SESSION CREATED FULL:", session);
-    console.log("SESSION URL:", session.url);
-
-    res.send({
-      success: true,
-      url: session.url
-    });
-
-  } catch (err) {
-    console.error("STRIPE ERROR:", err.message);
-
-    res.status(500).send({
-      success: false,
-      error: err.message
-    });
+    res.json({ success: true, url: session.url });
+  } catch (error) {
+    console.log("STRIPE ERROR:", error.message);
+    res.json({ success: false, error: error.message });
   }
 });
 
-app.listen(10000, () => console.log('Server running'));
+app.listen(3000, () => console.log('Server running on port 3000'));
