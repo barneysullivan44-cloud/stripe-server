@@ -1,28 +1,19 @@
-const express = require("express");
-const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+const express = require('express');
+const cors = require('cors');
+const Stripe = require('stripe');
 
 const app = express();
+app.use(cors());
 app.use(express.json());
 
-app.post("/create-payment-intent", async (req, res) => {
-  try {
-    const { amount } = req.body;
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: amount,
-      currency: "usd",
-      automatic_payment_methods: { enabled: true },
-    });
-
-    res.json({
-      clientSecret: paymentIntent.client_secret,
-    });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+// ✅ TEST ROUTE (to confirm server works)
+app.get('/', (req, res) => {
+  res.send('Server is running');
 });
 
-app.listen(3000, () => console.log("Server running"));
+// ✅ CREATE CHECKOUT SESSION (THIS IS THE IMPORTANT ONE)
 app.post('/create-checkout-session', async (req, res) => {
   try {
     const session = await stripe.checkout.sessions.create({
@@ -35,7 +26,7 @@ app.post('/create-checkout-session', async (req, res) => {
             product_data: {
               name: 'TabFlow Payment',
             },
-            unit_amount: 100,
+            unit_amount: 100, // $1
           },
           quantity: 1,
         },
@@ -45,35 +36,14 @@ app.post('/create-checkout-session', async (req, res) => {
     });
 
     res.json({ url: session.url });
+
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Something went wrong' });
+    console.error('Stripe error:', err);
+    res.status(500).json({ error: err.message });
   }
 });
-app.post('/create-checkout-session', async (req, res) => {
-  try {
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      mode: 'payment',
-      line_items: [
-        {
-          price_data: {
-            currency: 'usd',
-            product_data: {
-              name: 'TabFlow Payment',
-            },
-            unit_amount: 100,
-          },
-          quantity: 1,
-        },
-      ],
-      success_url: 'https://example.com/success',
-      cancel_url: 'https://example.com/cancel',
-    });
 
-    res.json({ url: session.url });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Something went wrong' });
-  }
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
