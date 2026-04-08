@@ -1,33 +1,25 @@
 const express = require("express");
-const cors = require("cors");
-const Stripe = require("stripe");
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 const app = express();
-app.use(cors());
 app.use(express.json());
 
-const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
-
-// TEST ROUTE
-app.get("/", (req, res) => {
-  res.send("Server running");
-});
-
-// 🔥 CREATE PAYMENT INTENT ROUTE
 app.post("/create-payment-intent", async (req, res) => {
   try {
+    const { amount } = req.body;
+
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: 1000, // $10.00
+      amount: amount,
       currency: "usd",
+      automatic_payment_methods: { enabled: true },
     });
 
-    res.send({
+    res.json({
       clientSecret: paymentIntent.client_secret,
     });
   } catch (error) {
-    res.status(500).send(error.message);
+    res.status(500).json({ error: error.message });
   }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log("Server running"));
+app.listen(3000, () => console.log("Server running"));
