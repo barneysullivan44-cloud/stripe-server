@@ -1,23 +1,13 @@
 const express = require('express');
 const cors = require('cors');
-require('dotenv').config();
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-
-// TEST ROUTE
-app.get('/', (req, res) => {
-  res.send('Server is running');
-});
-
-// CREATE CHECKOUT SESSION
 app.post('/create-checkout-session', async (req, res) => {
   try {
-    console.log("KEY BEING USED:", process.env.STRIPE_SECRET_KEY);
-
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       mode: 'payment',
@@ -37,11 +27,18 @@ app.post('/create-checkout-session', async (req, res) => {
       cancel_url: 'https://example.com/cancel',
     });
 
-    res.json({ success: true, url: session.url });
+    res.json({ url: session.url });
   } catch (error) {
-    console.log("STRIPE ERROR:", error.message);
-    res.json({ success: false, error: error.message });
+    console.log(error);
+    res.status(500).json({ error: error.message });
   }
 });
 
-app.listen(3000, () => console.log('Server running on port 3000'));
+app.get('/', (req, res) => {
+  res.send('Server is running');
+});
+
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
