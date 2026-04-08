@@ -1,32 +1,17 @@
-const express = require('express');
-const cors = require('cors');
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+import express from 'express';
+import cors from 'cors';
+import Stripe from 'stripe';
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+
+// CREATE CHECKOUT SESSION
 app.post('/create-checkout-session', async (req, res) => {
   try {
     const session = await stripe.checkout.sessions.create({
-  payment_method_types: ['card'],
-  line_items: [
-    {
-      price_data: {
-        currency: 'usd',
-        product_data: {
-          name: 'Hotel Payment',
-        },
-        unit_amount: 5000,
-      },
-      quantity: 1,
-    },
-  ],
-  mode: 'payment',
-
-  success_url: 'https://your-app.com/success',
-  cancel_url: 'https://your-app.com/cancel',
-});
       payment_method_types: ['card'],
       mode: 'payment',
       line_items: [
@@ -42,7 +27,7 @@ app.post('/create-checkout-session', async (req, res) => {
         },
       ],
       success_url: 'https://google.com',
-cancel_url: 'https://google.com',
+      cancel_url: 'https://google.com',
     });
 
     res.json({ url: session.url });
@@ -52,6 +37,7 @@ cancel_url: 'https://google.com',
   }
 });
 
+// TEST ROUTE
 app.get('/', (req, res) => {
   res.send('Server is running');
 });
