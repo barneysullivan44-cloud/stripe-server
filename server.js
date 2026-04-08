@@ -9,6 +9,24 @@ app.use(express.json());
 app.post('/create-checkout-session', async (req, res) => {
   try {
     const session = await stripe.checkout.sessions.create({
+  payment_method_types: ['card'],
+  line_items: [
+    {
+      price_data: {
+        currency: 'usd',
+        product_data: {
+          name: 'Hotel Payment',
+        },
+        unit_amount: 5000,
+      },
+      quantity: 1,
+    },
+  ],
+  mode: 'payment',
+
+  success_url: 'https://your-app.com/success',
+  cancel_url: 'https://your-app.com/cancel',
+});
       payment_method_types: ['card'],
       mode: 'payment',
       line_items: [
