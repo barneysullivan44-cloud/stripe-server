@@ -19,15 +19,15 @@ app.post('/create-checkout-session', async (req, res) => {
           price_data: {
             currency: 'usd',
             product_data: {
-              name: 'Test Payment',
+              name: 'Hotel Payment',
             },
             unit_amount: 5000,
           },
           quantity: 1,
         },
       ],
-      success_url: 'https://google.com',
-      cancel_url: 'https://google.com',
+      success_url: 'yourapp://success',
+      cancel_url: 'yourapp://cancel',
     });
 
     res.json({ url: session.url });
