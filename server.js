@@ -7,6 +7,11 @@ app.use(express.json());
 
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
+// TEST ROUTE (so you know server works)
+app.get('/', (req, res) => {
+  res.send('Server is running');
+});
+
 app.post('/create-checkout-session', async (req, res) => {
   try {
     const session = await stripe.checkout.sessions.create({
@@ -24,17 +29,25 @@ app.post('/create-checkout-session', async (req, res) => {
           quantity: 1,
         },
       ],
-      success_url: 'https://example.com/success',
-      cancel_url: 'https://example.com/cancel',
+      success_url: 'https://google.com',
+      cancel_url: 'https://google.com',
     });
 
-    console.log("SESSION CREATED:", session.url);
+    console.log("SESSION CREATED FULL:", session);
+    console.log("SESSION URL:", session.url);
 
-    res.json({ url: session.url });
+    res.send({
+      success: true,
+      url: session.url
+    });
 
   } catch (err) {
     console.error("STRIPE ERROR:", err.message);
-    res.status(500).json({ error: err.message });
+
+    res.status(500).send({
+      success: false,
+      error: err.message
+    });
   }
 });
 
