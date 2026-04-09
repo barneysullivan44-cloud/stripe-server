@@ -1,49 +1,39 @@
-import express from 'express';
-import cors from 'cors';
-import Stripe from 'stripe';
+app.get('/create-checkout-session', async (req, res) => {
+  const { item, amount, name, location, code } = req.query;
 
-const app = express();
+  const total = parseInt(amount);
 
-app.use(cors());
-app.use(express.json());
+  // 🔥 YOUR CUT (hidden)
+  const yourFee = Math.round(total * 0.10);
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+  // 🔥 HOTEL GETS THE REST
+  const hotelAmount = total - yourFee;
 
-app.post('/create-checkout-session', async (req, res) => {
-  try {
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      mode: 'payment',
-      line_items: [
-        {
-          price_data: {
-            currency: 'usd',
-            product_data: {
-              name: 'Hotel Payment',
-            },
-            unit_amount: 5000,
-          },
-          quantity: 1,
+  const session = await stripe.checkout.sessions.create({
+    payment_method_types: ['card'],
+    mode: 'payment',
+
+    line_items: [
+      {
+        price_data: {
+          currency: 'usd',
+          product_data: { name: item },
+          unit_amount: total,
         },
-      ],
-      success_url: 'myapp://success',
-cancel_url: 'myapp://cancel',
-    });
+        quantity: 1,
+      },
+    ],
 
-    res.json({ url: session.url });
+    payment_intent_data: {
+      application_fee_amount: yourFee, // 🔥 YOUR 10%
+      transfer_data: {
+        destination: 'HOTEL_STRIPE_ACCOUNT_ID', // 👈 we’ll plug this in later
+      },
+    },
 
-  } catch (error) {
-    console.log('ERROR:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
+    success_url: 'https://example.com/success',
+    cancel_url: 'https://example.com/cancel',
+  });
 
-app.get('/', (req, res) => {
-  res.send('Server is running');
-});
-
-const PORT = process.env.PORT || 10000;
-
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  res.redirect(session.url);
 });
