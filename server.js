@@ -1,3 +1,12 @@
+const express = require("express");
+const cors = require("cors");
+const Stripe = require("stripe");
+
+const app = express();
+const stripe = Stripe("YOUR_SECRET_KEY");
+
+app.use(cors());
+app.use(express.json());
 app.post("/create-checkout-session", async (req, res) => {
   const { name, price } = req.body;
 
