@@ -26,8 +26,8 @@ app.post('/create-checkout-session', async (req, res) => {
           quantity: 1,
         },
       ],
-      success_url: 'https://snack.expo.dev/@your-username/your-project?success=true',
-      cancel_url: 'https://snack.expo.dev/@your-username/your-project?cancel=true',
+      success_url: 'https://google.com',
+      cancel_url: 'https://google.com',
     });
 
     res.json({ url: session.url });
